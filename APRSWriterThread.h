@@ -38,7 +38,7 @@ public:
 
 	virtual bool isConnected() const;
 
-	virtual void write(const char* data);
+	virtual bool write(const unsigned char* data, unsigned int length);
 
 	virtual void entry();
 
@@ -49,17 +49,17 @@ public:
 	void clock(unsigned int ms);
 
 private:
-	std::string            m_username;
-	std::string            m_password;
-	CTCPSocket             m_socket;
-	CRingBuffer<char*>     m_queue;
-	bool                   m_exit;
-	bool                   m_connected;
-	CTimer                 m_reconnectTimer;
-	unsigned int           m_tries;
-	ReadAPRSFrameCallback  m_APRSReadCallback;
-	std::string            m_filter;
-	std::string            m_clientName;
+	std::string                m_username;
+	std::string                m_password;
+	CTCPSocket                 m_socket;
+	CRingBuffer<unsigned char> m_queue;
+	bool                       m_exit;
+	bool                       m_connected;
+	CTimer                     m_reconnectTimer;
+	unsigned int               m_tries;
+	ReadAPRSFrameCallback      m_aprsReadCallback;
+	std::string                m_filter;
+	std::string                m_clientName;
 
 	bool connect();
 	void startReconnectionTimer();

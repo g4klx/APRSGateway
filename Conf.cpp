@@ -37,7 +37,6 @@ enum SECTION {
 CConf::CConf(const std::string& file) :
 m_file(file),
 m_callsign(),
-m_suffix(),
 m_debug(false),
 m_daemon(false),
 m_logFilePath(),
@@ -45,10 +44,8 @@ m_logFileRoot(),
 m_aprsServer(),
 m_aprsPort(0U),
 m_aprsPassword(),
-m_aprsDescription(),
 m_networkAddress("127.0.0.1"),
-m_networkPort(0U),
-m_networkDebug(false)
+m_networkPort(0U)
 {
 }
 
@@ -97,11 +94,6 @@ bool CConf::read()
 			  for (unsigned int i = 0U; value[i] != 0; i++)
 				  value[i] = ::toupper(value[i]);
 			  m_callsign = value;
-		  } else if (::strcmp(key, "Suffix") == 0) {
-			  // Convert the callsign to upper case
-			  for (unsigned int i = 0U; value[i] != 0; i++)
-				  value[i] = ::toupper(value[i]);
-			  m_suffix = value;
 		  } else if (::strcmp(key, "Debug") == 0)
 			  m_debug = ::atoi(value) == 1;
 		  else if (::strcmp(key, "Daemon") == 0)
@@ -118,15 +110,11 @@ bool CConf::read()
 			  m_aprsPort = (unsigned int)::atoi(value);
 		  else if (::strcmp(key, "Password") == 0)
 			  m_aprsPassword = value;
-		  else if (::strcmp(key, "Description") == 0)
-			  m_aprsDescription = value;
 	  } else if (section == SECTION_NETWORK) {
 		  if (::strcmp(key, "Address") == 0)
 			  m_networkAddress = value;
 		  else if (::strcmp(key, "Port") == 0)
 			  m_networkPort = (unsigned int)::atoi(value);
-		  else if (::strcmp(key, "Debug") == 0)
-			  m_networkDebug = ::atoi(value) == 1;
 	  }
   }
 
@@ -138,11 +126,6 @@ bool CConf::read()
 std::string CConf::getCallsign() const
 {
 	return m_callsign;
-}
-
-std::string CConf::getSuffix() const
-{
-	return m_suffix;
 }
 
 bool CConf::getDebug() const
@@ -175,11 +158,6 @@ std::string CConf::getAPRSPassword() const
 	return m_aprsPassword;
 }
 
-std::string CConf::getAPRSDescription() const
-{
-	return m_aprsDescription;
-}
-
 std::string CConf::getLogFileRoot() const
 {
   return m_logFileRoot;
@@ -193,9 +171,4 @@ std::string CConf::getNetworkAddress() const
 unsigned int CConf::getNetworkPort() const
 {
 	return m_networkPort;
-}
-
-bool CConf::getNetworkDebug() const
-{
-	return m_networkDebug;
 }

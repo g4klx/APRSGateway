@@ -31,7 +31,6 @@ public:
 
   // The General section
   std::string  getCallsign() const;
-  std::string  getSuffix() const;
   bool         getDebug() const;
   bool         getDaemon() const;
 
@@ -39,7 +38,6 @@ public:
   std::string  getAPRSServer() const;
   unsigned int getAPRSPort() const;
   std::string  getAPRSPassword() const;
-  std::string  getAPRSDescription() const;
 
   // The Log section
   std::string  getLogFilePath() const;
@@ -48,12 +46,10 @@ public:
   // The Network section
   std::string  getNetworkAddress() const;
   unsigned int getNetworkPort() const;
-  bool         getNetworkDebug() const;
   
 private:
   std::string  m_file;
   std::string  m_callsign;
-  std::string  m_suffix;
   bool         m_debug;
   bool         m_daemon;
 
@@ -63,11 +59,9 @@ private:
   std::string  m_aprsServer;
   unsigned int m_aprsPort;
   std::string  m_aprsPassword;
-  std::string  m_aprsDescription;
 
   std::string  m_networkAddress;
   unsigned int m_networkPort;
-  bool         m_networkDebug;
 };
 
 #endif

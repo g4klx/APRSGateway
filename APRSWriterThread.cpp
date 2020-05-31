@@ -38,12 +38,12 @@ CThread(),
 m_username(callsign),
 m_password(password),
 m_socket(address, port),
-m_queue(20U, "APRS Queue"),
+m_queue(2000U, "APRS Queue"),
 m_exit(false),
 m_connected(false),
 m_reconnectTimer(1000U),
 m_tries(1U),
-m_APRSReadCallback(NULL),
+m_aprsReadCallback(NULL),
 m_filter(),
 m_clientName("APRSGateway")
 {
@@ -67,7 +67,7 @@ m_exit(false),
 m_connected(false),
 m_reconnectTimer(1000U),
 m_tries(1U),
-m_APRSReadCallback(NULL),
+m_aprsReadCallback(NULL),
 m_filter(filter),
 m_clientName(clientName)
 {
@@ -121,14 +121,18 @@ void CAPRSWriterThread::entry()
 				m_tries = 0U;
 
 				if (!m_queue.isEmpty()){
-					char* p = NULL;
-					m_queue.getData(&p, 1U);
+					unsigned int length = 0U;
+					m_queue.getData((unsigned char*)&length, sizeof(unsigned int));
 
-					LogMessage("APRS ==> %s", p);
+					unsigned char p[300U];
+					m_queue.getData(p, length);
 
-					::strcat(p, "\r\n");
+					CUtils::dump("APRS ==> %s", p, length);
 
-					bool ret = m_socket.write((unsigned char*)p, (unsigned int)::strlen(p));
+					p[length++] = '\r';
+					p[length++] = '\n';
+
+					bool ret = m_socket.write(p, length + 2U);
 					if (!ret) {
 						m_connected = false;
 						m_socket.close();
@@ -150,10 +154,10 @@ void CAPRSWriterThread::entry()
 					}
 
 					if(length > 0 && line.at(0U) != '#'//check if we have something and if that something is an APRS frame
-					    && m_APRSReadCallback != NULL)//do we have someone wanting an APRS Frame?
+					    && m_aprsReadCallback != NULL)//do we have someone wanting an APRS Frame?
 					{	
 						//wxLogMessage(wxT("Received APRS Frame : ") + line);
-						m_APRSReadCallback(std::string(line));
+						m_aprsReadCallback(std::string(line));
 					}
 				}
 
@@ -164,9 +168,8 @@ void CAPRSWriterThread::entry()
 			m_socket.close();
 
 		while (!m_queue.isEmpty()) {
-			char* p = NULL;
+			unsigned char p;
 			m_queue.getData(&p, 1U);
-			delete[] p;
 		}
 	}
 	catch (std::exception& e) {
@@ -181,22 +184,25 @@ void CAPRSWriterThread::entry()
 
 void CAPRSWriterThread::setReadAPRSCallback(ReadAPRSFrameCallback cb)
 {
-	m_APRSReadCallback = cb;
+	m_aprsReadCallback = cb;
 }
 
-void CAPRSWriterThread::write(const char* data)
+bool CAPRSWriterThread::write(const unsigned char* data, unsigned int length)
 {
 	assert(data != NULL);
 
 	if (!m_connected)
-		return;
+		return false;
 
-	unsigned int len = (unsigned int)::strlen(data);
+	unsigned int free = m_queue.freeSpace();
+	if (free < (length + sizeof(unsigned int)))
+		return false;
 
-	char* p = new char[len + 5U];
-	::strcpy(p, data);
+	bool ret = m_queue.addData((unsigned char*)&length, sizeof(unsigned int));
+	if (!ret)
+		return false;
 
-	m_queue.addData(&p, 1U);
+	return m_queue.addData(data, length);
 }
 
 bool CAPRSWriterThread::isConnected() const
