@@ -139,8 +139,6 @@ void CAPRSWriterThread::entry()
 						LogError("Connection to the APRS thread has failed");
 						startReconnectionTimer();
 					}
-
-					delete[] p;
 				}
 				{
 					std::string line;
