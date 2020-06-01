@@ -34,7 +34,7 @@ public:
   bool         getDebug() const;
   bool         getDaemon() const;
 
-  // The aprs.fi section
+  // The APRS-IS section
   std::string  getAPRSServer() const;
   unsigned int getAPRSPort() const;
   std::string  getAPRSPassword() const;

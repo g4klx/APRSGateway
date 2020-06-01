@@ -129,10 +129,7 @@ void CAPRSWriterThread::entry()
 
 					CUtils::dump("APRS ==> %s", p, length);
 
-					p[length++] = '\r';
-					p[length++] = '\n';
-
-					bool ret = m_socket.write(p, length + 2U);
+					bool ret = m_socket.write(p, length);
 					if (!ret) {
 						m_connected = false;
 						m_socket.close();
@@ -140,25 +137,22 @@ void CAPRSWriterThread::entry()
 						startReconnectionTimer();
 					}
 				}
-				{
-					std::string line;
-					int length = m_socket.readLine(line, APRS_TIMEOUT);
 
-					if (length < 0) {
-						m_connected = false;
-						m_socket.close();
-						LogError("Error when reading from the APRS server");
-						startReconnectionTimer();
-					}
+				std::string line;
+				int length = m_socket.readLine(line, APRS_TIMEOUT);
 
-					if(length > 0 && line.at(0U) != '#'//check if we have something and if that something is an APRS frame
-					    && m_aprsReadCallback != NULL)//do we have someone wanting an APRS Frame?
-					{	
-						//wxLogMessage(wxT("Received APRS Frame : ") + line);
-						m_aprsReadCallback(std::string(line));
-					}
+				if (length < 0) {
+					m_connected = false;
+					m_socket.close();
+					LogError("Error when reading from the APRS server");
+					startReconnectionTimer();
 				}
 
+				if(length > 0 && line.at(0U) != '#'//check if we have something and if that something is an APRS frame
+				    && m_aprsReadCallback != NULL) { //do we have someone wanting an APRS Frame?
+					//wxLogMessage(wxT("Received APRS Frame : ") + line);
+					m_aprsReadCallback(std::string(line));
+				}
 			}
 		}
 

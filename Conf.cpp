@@ -30,7 +30,7 @@ enum SECTION {
   SECTION_NONE,
   SECTION_GENERAL,
   SECTION_LOG,
-  SECTION_APRS_FI,
+  SECTION_APRS_IS,
   SECTION_NETWORK
 };
 
@@ -73,8 +73,8 @@ bool CConf::read()
 			  section = SECTION_GENERAL;
 		  else if (::strncmp(buffer, "[Log]", 5U) == 0)
 			  section = SECTION_LOG;
-		  else if (::strncmp(buffer, "[aprs.fi]", 9U) == 0)
-			  section = SECTION_APRS_FI;
+		  else if (::strncmp(buffer, "[APRS-IS]", 9U) == 0)
+			  section = SECTION_APRS_IS;
 		  else if (::strncmp(buffer, "[Network]", 9U) == 0)
 			  section = SECTION_NETWORK;
 		  else
@@ -103,7 +103,7 @@ bool CConf::read()
 			  m_logFilePath = value;
 		  else if (::strcmp(key, "FileRoot") == 0)
 			  m_logFileRoot = value;
-	  } else if (section == SECTION_APRS_FI) {
+	  } else if (section == SECTION_APRS_IS) {
 		  if (::strcmp(key, "Server") == 0)
 			  m_aprsServer = value;
 		  else if (::strcmp(key, "Port") == 0)
