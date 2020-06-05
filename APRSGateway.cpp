@@ -163,7 +163,7 @@ void CAPRSGateway::run()
 	}
 #endif
 
-	CAPRSWriterThread* writer = new CAPRSWriterThread(m_conf.getCallsign(), m_conf.getAPRSPassword(), m_conf.getAPRSServer(), m_conf.getAPRSPort());
+	CAPRSWriterThread* writer = new CAPRSWriterThread(m_conf.getCallsign(), m_conf.getAPRSPassword(), m_conf.getAPRSServer(), m_conf.getAPRSPort(), m_conf.getDebug());
 	ret = writer->start();
 	if (!ret) {
 		delete writer;
@@ -174,8 +174,6 @@ void CAPRSGateway::run()
 	ret = aprsSocket.open();
 	if (!ret)
 		return;
-
-	bool debug = m_conf.getDebug();
 
 	CStopWatch stopWatch;
 	stopWatch.start();
@@ -197,8 +195,8 @@ void CAPRSGateway::run()
 
 		writer->clock(ms);
 
-		if (ms < 5U)
-			CThread::sleep(5U);
+		if (ms < 20U)
+			CThread::sleep(20U);
 	}
 
 	aprsSocket.close();

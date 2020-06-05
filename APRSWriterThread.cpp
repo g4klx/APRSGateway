@@ -33,10 +33,11 @@ const unsigned int CALLSIGN_LENGTH = 8U;
 
 const unsigned int APRS_TIMEOUT = 10U;
 
-CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned int port) :
+CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned int port, bool debug) :
 CThread(),
 m_username(callsign),
 m_password(password),
+m_debug(debug),
 m_socket(address, port),
 m_queue(2000U, "APRS Queue"),
 m_exit(false),
@@ -57,10 +58,11 @@ m_clientName("APRSGateway")
 	std::transform(m_username.begin(), m_username.end(), m_username.begin(), ::toupper);
 }
 
-CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned int port, const std::string& filter, const std::string& clientName) :
+CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned int port, const std::string& filter, const std::string& clientName, bool debug) :
 CThread(),
 m_username(callsign),
 m_password(password),
+m_debug(debug),
 m_socket(address, port),
 m_queue(20U, "APRS Queue"),
 m_exit(false),
@@ -127,7 +129,8 @@ void CAPRSWriterThread::entry()
 					unsigned char p[300U];
 					m_queue.getData(p, length);
 
-					CUtils::dump("APRS message", p, length);
+					if (m_debug)
+						CUtils::dump(1U, "APRS message", p, length);
 
 					bool ret = m_socket.write(p, length);
 					if (!ret) {
