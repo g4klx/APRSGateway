@@ -127,7 +127,7 @@ void CAPRSWriterThread::entry()
 					unsigned char p[300U];
 					m_queue.getData(p, length);
 
-					CUtils::dump("APRS ==> %s", p, length);
+					CUtils::dump("APRS message", p, length);
 
 					bool ret = m_socket.write(p, length);
 					if (!ret) {

@@ -189,11 +189,8 @@ void CAPRSGateway::run()
 
 		// From a gateway to aprs.fi
 		unsigned int len = aprsSocket.read(buffer, 500U, address, port);
-		if (len > 0U) {
-			if (debug)
-				CUtils::dump("Received APRS message", buffer, len);
+		if (len > 0U)
 			writer->write(buffer, len);
-		}
 
 		unsigned int ms = stopWatch.elapsed();
 		stopWatch.start();
