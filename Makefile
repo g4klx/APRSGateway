@@ -14,6 +14,9 @@ APRSGateway:	$(OBJECTS)
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -c -o $@ $<
 
+install:
+		install -m 755 APRSGateway /usr/local/bin/
+
 clean:
 		$(RM) APRSGateway *.o *.d *.bak *~
  
