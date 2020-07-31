@@ -108,6 +108,7 @@ void CAPRSWriterThread::entry()
 	try {
 		while (!m_exit) {
 			if (!m_connected) {
+				sleep(100U);
 				if (m_reconnectTimer.isRunning() && m_reconnectTimer.hasExpired()) {
 					m_reconnectTimer.stop();
 
@@ -141,20 +142,22 @@ void CAPRSWriterThread::entry()
 					}
 				}
 
-				std::string line;
-				int length = m_socket.readLine(line, APRS_TIMEOUT);
+				if (m_connected) {
+					std::string line;
+					int length = m_socket.readLine(line, APRS_TIMEOUT);
 
-				if (length < 0) {
-					m_connected = false;
-					m_socket.close();
-					LogError("Error when reading from the APRS server");
-					startReconnectionTimer();
-				}
+					if (length < 0) {
+						m_connected = false;
+						m_socket.close();
+						LogError("Error when reading from the APRS server");
+						startReconnectionTimer();
+					}
 
-				if(length > 0 && line.at(0U) != '#'//check if we have something and if that something is an APRS frame
-				    && m_aprsReadCallback != NULL) { //do we have someone wanting an APRS Frame?
-					//wxLogMessage(wxT("Received APRS Frame : ") + line);
-					m_aprsReadCallback(std::string(line));
+					if (length > 0 && line.at(0U) != '#'//check if we have something and if that something is an APRS frame
+						&& m_aprsReadCallback != NULL) { //do we have someone wanting an APRS Frame?
+						// LogMessage("Received APRS Frame : %s", line.c_str());
+						m_aprsReadCallback(line);
+					}
 				}
 			}
 		}
@@ -232,6 +235,11 @@ bool CAPRSWriterThread::connect()
 		m_socket.close();
 		return false;
 	}
+	if (length < 0) {
+		LogError("Error when reading from the APRS server");
+		m_socket.close();
+		return false;
+	}
 
 	LogMessage("Received login banner : %s", serverResponse.c_str());
 
@@ -254,7 +262,6 @@ bool CAPRSWriterThread::connect()
 		m_socket.close();
 		return false;
 	}
-
 	if (length < 0) {
 		LogError("Error when reading from the APRS server");
 		m_socket.close();
@@ -274,6 +281,8 @@ void CAPRSWriterThread::startReconnectionTimer()
 	m_tries++;
 	if (m_tries > 10U)
 		m_tries = 10U;
+
+	LogMessage("Will attempt to reconnect in %u minutes", m_tries);
 
 	m_reconnectTimer.setTimeout(m_tries * 60U);
 	m_reconnectTimer.start();
