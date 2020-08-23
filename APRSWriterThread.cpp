@@ -243,10 +243,6 @@ bool CAPRSWriterThread::connect()
 
 	LogMessage("Received login banner : %s", serverResponse.c_str());
 
-	std::string filter(m_filter);
-	if (filter.length() > 0)
-		filter.insert(0U, " filter ");
-
 	char connectString[200U];
 	::sprintf(connectString, "user %s pass %s vers %s filter %s\n", m_username.c_str(), m_password.c_str(), (m_clientName.length() ? m_clientName.c_str() : "YSFGateway"), (m_filter.length() ? m_filter.c_str() : "default"));
 
