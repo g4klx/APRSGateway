@@ -248,7 +248,7 @@ bool CAPRSWriterThread::connect()
 		filter.insert(0U, " filter ");
 
 	char connectString[200U];
-	::sprintf(connectString, "user %s pass %s vers %s%s\n", m_username.c_str(), m_password.c_str(), (m_clientName.length() ? m_clientName : "YSFGateway").c_str(), filter.c_str());
+	::sprintf(connectString, "user %s pass %s vers %s filter %s\n", m_username.c_str(), m_password.c_str(), (m_clientName.length() ? m_clientName.c_str() : "YSFGateway"), (m_filter.length() ? m_filter.c_str() : "default"));
 
 	ret = m_socket.writeLine(std::string(connectString));
 	if (!ret) {
