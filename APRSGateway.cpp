@@ -94,11 +94,9 @@ void CAPRSGateway::run()
 		return;
 	}
 
-	bool daemon = false;
-
 #if !defined(_WIN32) && !defined(_WIN64)
-	daemon = m_conf.getDaemon();
-	if (daemon) {
+	bool m_daemon = m_conf.getDaemon();
+	if (m_daemon) {
 		// Create new process
 		pid_t pid = ::fork();
 		if (pid == -1) {
@@ -151,14 +149,14 @@ void CAPRSGateway::run()
 	}
 #endif
 
-	ret = ::LogInitialise(m_conf.getLogFilePath(), m_conf.getLogFileRoot(), 1U, daemon ? 0U : 1U);
+	ret = ::LogInitialise(m_conf.getLogFilePath(), m_conf.getLogFileRoot(), 1U, (m_daemon ? 0U : 1U));
 	if (!ret) {
 		::fprintf(stderr, "APRSGateway: unable to open the log file\n");
 		return;
 	}
 
 #if !defined(_WIN32) && !defined(_WIN64)
-	if (daemon) {
+	if (m_daemon) {
 		::close(STDIN_FILENO);
 		::close(STDOUT_FILENO);
 		::close(STDERR_FILENO);
