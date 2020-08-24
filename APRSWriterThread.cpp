@@ -64,7 +64,7 @@ m_username(callsign),
 m_password(password),
 m_debug(debug),
 m_socket(address, port),
-m_queue(20U, "APRS Queue"),
+m_queue(2000U, "APRS Queue"),
 m_exit(false),
 m_connected(false),
 m_reconnectTimer(1000U),
@@ -127,7 +127,7 @@ void CAPRSWriterThread::entry()
 					unsigned int length = 0U;
 					m_queue.getData((unsigned char*)&length, sizeof(unsigned int));
 
-					unsigned char p[300U];
+					unsigned char p[500U];
 					m_queue.getData(p, length);
 
 					if (m_debug)
