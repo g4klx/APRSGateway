@@ -149,7 +149,7 @@ void CAPRSGateway::run()
 	}
 #endif
 
-	ret = ::LogInitialise(m_conf.getLogFilePath(), m_conf.getLogFileRoot(), 1U, (m_daemon ? 0U : 1U));
+	ret = ::LogInitialise(m_conf.getLogFilePath(), m_conf.getLogFileRoot(), m_conf.getLogFileLevel(), m_conf.getLogDisplayLevel());
 	if (!ret) {
 		::fprintf(stderr, "APRSGateway: unable to open the log file\n");
 		return;

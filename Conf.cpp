@@ -39,6 +39,8 @@ m_file(file),
 m_callsign(),
 m_debug(false),
 m_daemon(false),
+m_logDisplayLevel(0U),
+m_logFileLevel(0U),
 m_logFilePath(),
 m_logFileRoot(),
 m_aprsServer(),
@@ -55,72 +57,76 @@ CConf::~CConf()
 
 bool CConf::read()
 {
-  FILE* fp = ::fopen(m_file.c_str(), "rt");
-  if (fp == NULL) {
-    ::fprintf(stderr, "Couldn't open the .ini file - %s\n", m_file.c_str());
-    return false;
-  }
+	FILE* fp = ::fopen(m_file.c_str(), "rt");
+	if (fp == NULL) {
+		::fprintf(stderr, "Couldn't open the .ini file - %s\n", m_file.c_str());
+		return false;
+	}
 
-  SECTION section = SECTION_NONE;
+	SECTION section = SECTION_NONE;
 
-  char buffer[BUFFER_SIZE];
-  while (::fgets(buffer, BUFFER_SIZE, fp) != NULL) {
-	  if (buffer[0U] == '#')
-		  continue;
+	char buffer[BUFFER_SIZE];
+	while (::fgets(buffer, BUFFER_SIZE, fp) != NULL) {
+		if (buffer[0U] == '#')
+			continue;
 
-	  if (buffer[0U] == '[') {
-		  if (::strncmp(buffer, "[General]", 9U) == 0)
-			  section = SECTION_GENERAL;
-		  else if (::strncmp(buffer, "[Log]", 5U) == 0)
-			  section = SECTION_LOG;
-		  else if (::strncmp(buffer, "[APRS-IS]", 9U) == 0)
-			  section = SECTION_APRS_IS;
-		  else if (::strncmp(buffer, "[Network]", 9U) == 0)
-			  section = SECTION_NETWORK;
-		  else
-			  section = SECTION_NONE;
+		if (buffer[0U] == '[') {
+			if (::strncmp(buffer, "[General]", 9U) == 0)
+				section = SECTION_GENERAL;
+			else if (::strncmp(buffer, "[Log]", 5U) == 0)
+				section = SECTION_LOG;
+			else if (::strncmp(buffer, "[APRS-IS]", 9U) == 0)
+				section = SECTION_APRS_IS;
+			else if (::strncmp(buffer, "[Network]", 9U) == 0)
+				section = SECTION_NETWORK;
+			else
+				section = SECTION_NONE;
 
-		  continue;
-	  }
+			continue;
+		}
 
-	  char* key = ::strtok(buffer, " \t=\r\n");
-	  if (key == NULL)
-		  continue;
+		char* key = ::strtok(buffer, " \t=\r\n");
+		if (key == NULL)
+			continue;
 
-	  char* value = ::strtok(NULL, "\r\n");
-	  if (section == SECTION_GENERAL) {
-		  if (::strcmp(key, "Callsign") == 0) {
-			  // Convert the callsign to upper case
-			  for (unsigned int i = 0U; value[i] != 0; i++)
-				  value[i] = ::toupper(value[i]);
-			  m_callsign = value;
-		  } else if (::strcmp(key, "Debug") == 0)
-			  m_debug = ::atoi(value) == 1;
-		  else if (::strcmp(key, "Daemon") == 0)
-			  m_daemon = ::atoi(value) == 1;
-	  } else if (section == SECTION_LOG) {
-		  if (::strcmp(key, "FilePath") == 0)
-			  m_logFilePath = value;
-		  else if (::strcmp(key, "FileRoot") == 0)
-			  m_logFileRoot = value;
-	  } else if (section == SECTION_APRS_IS) {
-		  if (::strcmp(key, "Server") == 0)
-			  m_aprsServer = value;
-		  else if (::strcmp(key, "Port") == 0)
-			  m_aprsPort = (unsigned int)::atoi(value);
-		  else if (::strcmp(key, "Password") == 0)
-			  m_aprsPassword = value;
-	  } else if (section == SECTION_NETWORK) {
-		  if (::strcmp(key, "Address") == 0)
-			  m_networkAddress = value;
-		  else if (::strcmp(key, "Port") == 0)
-			  m_networkPort = (unsigned int)::atoi(value);
-	  }
-  }
+		char* value = ::strtok(NULL, "\r\n");
+		if (section == SECTION_GENERAL) {
+			if (::strcmp(key, "Callsign") == 0) {
+				// Convert the callsign to upper case
+				for (unsigned int i = 0U; value[i] != 0; i++)
+					value[i] = ::toupper(value[i]);
+				m_callsign = value;
+			} else if (::strcmp(key, "Debug") == 0)
+				m_debug = ::atoi(value) == 1;
+			else if (::strcmp(key, "Daemon") == 0)
+				m_daemon = ::atoi(value) == 1;
+		} else if (section == SECTION_LOG) {
+			if (::strcmp(key, "FilePath") == 0)
+				m_logFilePath = value;
+			else if (::strcmp(key, "FileRoot") == 0)
+				m_logFileRoot = value;
+			else if (::strcmp(key, "FileLevel") == 0)
+				m_logFileLevel = (unsigned int)::atoi(value);
+			else if (::strcmp(key, "DisplayLevel") == 0)
+				m_logDisplayLevel = (unsigned int)::atoi(value);
+		} else if (section == SECTION_APRS_IS) {
+			if (::strcmp(key, "Server") == 0)
+				m_aprsServer = value;
+			else if (::strcmp(key, "Port") == 0)
+				m_aprsPort = (unsigned int)::atoi(value);
+			else if (::strcmp(key, "Password") == 0)
+				m_aprsPassword = value;
+		} else if (section == SECTION_NETWORK) {
+			if (::strcmp(key, "Address") == 0)
+				m_networkAddress = value;
+			else if (::strcmp(key, "Port") == 0)
+				m_networkPort = (unsigned int)::atoi(value);
+		}
+	}
 
-  ::fclose(fp);
+	::fclose(fp);
 
-  return true;
+	return true;
 }
 
 std::string CConf::getCallsign() const
@@ -138,11 +144,6 @@ bool CConf::getDaemon() const
 	return m_daemon;
 }
 
-std::string CConf::getLogFilePath() const
-{
-  return m_logFilePath;
-}
-
 std::string CConf::getAPRSServer() const
 {
 	return m_aprsServer;
@@ -158,9 +159,24 @@ std::string CConf::getAPRSPassword() const
 	return m_aprsPassword;
 }
 
+unsigned int CConf::getLogDisplayLevel() const
+{
+	return m_logDisplayLevel;
+}
+
+unsigned int CConf::getLogFileLevel() const
+{
+	return m_logFileLevel;
+}
+
+std::string CConf::getLogFilePath() const
+{
+	return m_logFilePath;
+}
+
 std::string CConf::getLogFileRoot() const
 {
-  return m_logFileRoot;
+	return m_logFileRoot;
 }
 
 std::string CConf::getNetworkAddress() const
