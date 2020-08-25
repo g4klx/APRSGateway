@@ -17,6 +17,8 @@
 #include <cstdio>
 #include <cassert>
 
+const std::string LINEENDING = " \n\r";
+
 void CUtils::dump(const std::string& title, const unsigned char* data, unsigned int length)
 {
 	assert(data != NULL);
@@ -144,3 +146,10 @@ void CUtils::bitsToByteLE(const bool* bits, unsigned char& byte)
 	byte |= bits[6U] ? 0x40U : 0x00U;
 	byte |= bits[7U] ? 0x80U : 0x00U;
 }
+
+std::string CUtils::rtrim(const std::string& s)
+{
+	size_t end = s.find_last_not_of(LINEENDING);
+	return (end == std::string::npos) ? "" : s.substr(0, end + 1);
+}
+

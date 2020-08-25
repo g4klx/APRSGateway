@@ -241,7 +241,7 @@ bool CAPRSWriterThread::connect()
 		return false;
 	}
 
-	LogMessage("Received login banner : %s", serverResponse.c_str());
+	LogMessage("Received login banner : %s", CUtils::rtrim(serverResponse).c_str());
 
 	char connectString[200U];
 	::sprintf(connectString, "user %s pass %s vers %s filter %s\n", m_username.c_str(), m_password.c_str(), (m_clientName.length() ? m_clientName.c_str() : "YSFGateway"), (m_filter.length() ? m_filter.c_str() : "default"));
@@ -264,7 +264,7 @@ bool CAPRSWriterThread::connect()
 		return false;
 	}
 
-	LogMessage("Response from APRS server: %s", serverResponse.c_str());
+	LogMessage("Response from APRS server: %s", CUtils::rtrim(serverResponse).c_str());
 
 	LogMessage("Connected to the APRS server");
 
