@@ -127,7 +127,7 @@ void CAPRSWriterThread::entry()
 					unsigned int length = 0U;
 					m_queue.getData((unsigned char*)&length, sizeof(unsigned int));
 
-					unsigned char p[500U];
+					unsigned char p[FRAME_BUFFER_SIZE];
 					m_queue.getData(p, length);
 
 					if (m_debug)

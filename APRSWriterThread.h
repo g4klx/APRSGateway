@@ -26,6 +26,8 @@
 
 #include <string>
 
+const unsigned int FRAME_BUFFER_SIZE = 300U;
+
 typedef void (*ReadAPRSFrameCallback)(const std::string&);
 
 class CAPRSWriterThread : public CThread {
