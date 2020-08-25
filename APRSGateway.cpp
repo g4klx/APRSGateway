@@ -181,12 +181,12 @@ void CAPRSGateway::run()
 	LogMessage("Starting APRSGateway-%s", VERSION);
 
 	for (;;) {
-		unsigned char buffer[500U];
+		unsigned char buffer[FRAME_BUFFER_SIZE];
 		in_addr address;
 		unsigned int port;
 
 		// From a gateway to aprs.fi
-		unsigned int len = aprsSocket.read(buffer, 500U, address, port);
+		unsigned int len = aprsSocket.read(buffer, FRAME_BUFFER_SIZE, address, port);
 		if (len > 0U)
 			writer->write(buffer, len);
 
