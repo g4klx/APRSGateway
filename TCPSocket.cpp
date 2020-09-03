@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013,2016 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2016,2018 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -61,7 +61,13 @@ bool CTCPSocket::open()
 	if (m_address.empty() || m_port == 0U)
 		return false;
 
-	m_fd = ::socket(PF_INET, SOCK_STREAM, 0);
+	/* to determine protocol family, call lookup() first.*/
+	sockaddr_storage addr;
+	unsigned int addrlen;
+	if (CUDPSocket::lookup(m_address, m_port, addr, addrlen))
+		return false;
+
+	m_fd = ::socket(addr.ss_family, SOCK_STREAM, 0);
 	if (m_fd < 0) {
 #if defined(_WIN32) || defined(_WIN64)
 		LogError("Cannot create the TCP client socket, err=%d", ::GetLastError());
@@ -71,18 +77,7 @@ bool CTCPSocket::open()
 		return false;
 	}
 
-	struct sockaddr_in addr;
-	::memset(&addr, 0x00, sizeof(struct sockaddr_in));
-	addr.sin_family = AF_INET;
-	addr.sin_port   = htons(m_port);
-	addr.sin_addr   = CUDPSocket::lookup(m_address);
-
-	if (addr.sin_addr.s_addr == INADDR_NONE) {
-		close();
-		return false;
-	}
-
-	if (::connect(m_fd, (sockaddr*)&addr, sizeof(struct sockaddr_in)) == -1) {
+	if (::connect(m_fd, (sockaddr*)&addr, addrlen) == -1) {
 #if defined(_WIN32) || defined(_WIN64)
 		LogError("Cannot connect the TCP client socket, err=%d", ::GetLastError());
 #else
@@ -95,9 +90,20 @@ bool CTCPSocket::open()
 	int noDelay = 1;
 	if (::setsockopt(m_fd, IPPROTO_TCP, TCP_NODELAY, (char *)&noDelay, sizeof(noDelay)) == -1) {
 #if defined(_WIN32) || defined(_WIN64)
-		LogError("Cannot set the TCP client socket option, err=%d", ::GetLastError());
+		LogError("Cannot set the TCP client socket option for TCP_NODELAY, err=%d", ::GetLastError());
 #else
-		LogError("Cannot set the TCP client socket option, err=%d", errno);
+		LogError("Cannot set the TCP client socket option for TCP_NODELAY, err=%d", errno);
+#endif
+		close();
+		return false;
+	}
+
+	int keepAlive = 1;
+	if (::setsockopt(m_fd, SOL_SOCKET, SO_KEEPALIVE, (char *)&keepAlive, sizeof(keepAlive)) == -1) {
+#if defined(_WIN32) || defined(_WIN64)
+		LogError("Cannot set the TCP client socket option for SO_KEEPALIVE, err=%d", ::GetLastError());
+#else
+		LogError("Cannot set the TCP client socket option for SO_KEEPALIVE, err=%d", errno);
 #endif
 		close();
 		return false;
