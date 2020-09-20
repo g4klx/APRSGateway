@@ -80,10 +80,12 @@ int main(int argc, char** argv)
 CAPRSGateway::CAPRSGateway(const std::string& file) :
 m_conf(file)
 {
+	CUDPSocket::startup();
 }
 
 CAPRSGateway::~CAPRSGateway()
 {
+	CUDPSocket::shutdown();
 }
 
 void CAPRSGateway::run()
