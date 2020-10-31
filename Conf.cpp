@@ -43,6 +43,7 @@ m_logDisplayLevel(0U),
 m_logFileLevel(0U),
 m_logFilePath(),
 m_logFileRoot(),
+m_logFileRotate(true),
 m_aprsServer(),
 m_aprsPort(0U),
 m_aprsPassword(),
@@ -129,6 +130,8 @@ bool CConf::read()
 				m_logFileLevel = (unsigned int)::atoi(value);
 			else if (::strcmp(key, "DisplayLevel") == 0)
 				m_logDisplayLevel = (unsigned int)::atoi(value);
+			else if (::strcmp(key, "FileRotate") == 0)
+				m_logFileRotate = ::atoi(value) == 1;
 		} else if (section == SECTION_APRS_IS) {
 			if (::strcmp(key, "Server") == 0)
 				m_aprsServer = value;
@@ -197,6 +200,11 @@ std::string CConf::getLogFilePath() const
 std::string CConf::getLogFileRoot() const
 {
 	return m_logFileRoot;
+}
+
+bool CConf::getLogFileRotate() const
+{
+	return m_logFileRotate;
 }
 
 std::string CConf::getNetworkAddress() const
