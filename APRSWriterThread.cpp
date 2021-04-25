@@ -33,7 +33,7 @@ const unsigned int CALLSIGN_LENGTH = 8U;
 
 const unsigned int APRS_TIMEOUT = 10U;
 
-CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned int port, bool debug) :
+CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned short port, bool debug) :
 CThread(),
 m_username(callsign),
 m_password(password),
@@ -58,7 +58,7 @@ m_clientName("APRSGateway")
 	std::transform(m_username.begin(), m_username.end(), m_username.begin(), ::toupper);
 }
 
-CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned int port, const std::string& filter, const std::string& clientName, bool debug) :
+CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned short port, const std::string& filter, const std::string& clientName, bool debug) :
 CThread(),
 m_username(callsign),
 m_password(password),

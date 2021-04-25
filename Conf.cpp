@@ -136,14 +136,14 @@ bool CConf::read()
 			if (::strcmp(key, "Server") == 0)
 				m_aprsServer = value;
 			else if (::strcmp(key, "Port") == 0)
-				m_aprsPort = (unsigned int)::atoi(value);
+				m_aprsPort = (unsigned short)::atoi(value);
 			else if (::strcmp(key, "Password") == 0)
 				m_aprsPassword = value;
 		} else if (section == SECTION_NETWORK) {
 			if (::strcmp(key, "Address") == 0)
 				m_networkAddress = value;
 			else if (::strcmp(key, "Port") == 0)
-				m_networkPort = (unsigned int)::atoi(value);
+				m_networkPort = (unsigned short)::atoi(value);
 		}
 	}
 
@@ -172,7 +172,7 @@ std::string CConf::getAPRSServer() const
 	return m_aprsServer;
 }
 
-unsigned int CConf::getAPRSPort() const
+unsigned short CConf::getAPRSPort() const
 {
 	return m_aprsPort;
 }
@@ -212,7 +212,7 @@ std::string CConf::getNetworkAddress() const
 	return m_networkAddress;
 }
 
-unsigned int CConf::getNetworkPort() const
+unsigned short CConf::getNetworkPort() const
 {
 	return m_networkPort;
 }
