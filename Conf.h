@@ -36,7 +36,7 @@ public:
 
   // The APRS-IS section
   std::string  getAPRSServer() const;
-  unsigned int getAPRSPort() const;
+  unsigned short getAPRSPort() const;
   std::string  getAPRSPassword() const;
 
   // The Log section
@@ -48,7 +48,7 @@ public:
 
   // The Network section
   std::string  getNetworkAddress() const;
-  unsigned int getNetworkPort() const;
+  unsigned short getNetworkPort() const;
   
 private:
   std::string  m_file;
@@ -63,11 +63,11 @@ private:
   bool         m_logFileRotate;
 
   std::string  m_aprsServer;
-  unsigned int m_aprsPort;
+  unsigned short m_aprsPort;
   std::string  m_aprsPassword;
 
   std::string  m_networkAddress;
-  unsigned int m_networkPort;
+  unsigned short m_networkPort;
 };
 
 #endif

@@ -32,8 +32,8 @@ typedef void (*ReadAPRSFrameCallback)(const std::string&);
 
 class CAPRSWriterThread : public CThread {
 public:
-	CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned int port, bool debug);
-	CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned int port, const std::string& filter, const std::string& clientName, bool debug);
+	CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned short port, bool debug);
+	CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned short port, const std::string& filter, const std::string& clientName, bool debug);
 	virtual ~CAPRSWriterThread();
 
 	virtual bool start();
