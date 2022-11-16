@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012,2016,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2016,2020,2022 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,8 +32,7 @@ typedef void (*ReadAPRSFrameCallback)(const std::string&);
 
 class CAPRSWriterThread : public CThread {
 public:
-	CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned short port, bool debug);
-	CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned short port, const std::string& filter, const std::string& clientName, bool debug);
+	CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned short port, const std::string& version, bool debug);
 	virtual ~CAPRSWriterThread();
 
 	virtual bool start();
@@ -61,8 +60,7 @@ private:
 	CTimer                     m_reconnectTimer;
 	unsigned int               m_tries;
 	ReadAPRSFrameCallback      m_aprsReadCallback;
-	std::string                m_filter;
-	std::string                m_clientName;
+	std::string                m_version;
 
 	bool connect();
 	void startReconnectionTimer();

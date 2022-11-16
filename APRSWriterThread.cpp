@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014,2016,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2016,2020,2022 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ const unsigned int CALLSIGN_LENGTH = 8U;
 
 const unsigned int APRS_TIMEOUT = 10U;
 
-CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned short port, bool debug) :
+CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned short port, const std::string& version, bool debug) :
 CThread(),
 m_username(callsign),
 m_password(password),
@@ -45,33 +45,7 @@ m_connected(false),
 m_reconnectTimer(1000U),
 m_tries(1U),
 m_aprsReadCallback(NULL),
-m_filter(),
-m_clientName("APRSGateway")
-{
-	assert(!callsign.empty());
-	assert(!password.empty());
-	assert(!address.empty());
-	assert(port > 0U);
-
-	m_username.resize(CALLSIGN_LENGTH, ' ');
-	m_username.erase(std::find_if(m_username.rbegin(), m_username.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), m_username.end());
-	std::transform(m_username.begin(), m_username.end(), m_username.begin(), ::toupper);
-}
-
-CAPRSWriterThread::CAPRSWriterThread(const std::string& callsign, const std::string& password, const std::string& address, unsigned short port, const std::string& filter, const std::string& clientName, bool debug) :
-CThread(),
-m_username(callsign),
-m_password(password),
-m_debug(debug),
-m_socket(address, port),
-m_queue(2000U, "APRS Queue"),
-m_exit(false),
-m_connected(false),
-m_reconnectTimer(1000U),
-m_tries(1U),
-m_aprsReadCallback(NULL),
-m_filter(filter),
-m_clientName(clientName)
+m_version(version)
 {
 	assert(!callsign.empty());
 	assert(!password.empty());
@@ -244,7 +218,7 @@ bool CAPRSWriterThread::connect()
 	LogMessage("Received login banner : %s", CUtils::rtrim(serverResponse).c_str());
 
 	char connectString[200U];
-	::sprintf(connectString, "user %s pass %s vers %s filter %s\n", m_username.c_str(), m_password.c_str(), (m_clientName.length() ? m_clientName.c_str() : "YSFGateway"), (m_filter.length() ? m_filter.c_str() : "default"));
+	::sprintf(connectString, "user %s pass %s vers APRSGateway %s filter default\n", m_username.c_str(), m_password.c_str(), m_version.c_str());
 
 	ret = m_socket.writeLine(std::string(connectString));
 	if (!ret) {

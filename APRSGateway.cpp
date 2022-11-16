@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2016,2017,2018,2020 by Jonathan Naylor G4KLX
+*   Copyright (C) 2016,2017,2018,2020,2022 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -169,7 +169,7 @@ void CAPRSGateway::run()
 	}
 #endif
 
-	CAPRSWriterThread* writer = new CAPRSWriterThread(m_conf.getCallsign(), m_conf.getAPRSPassword(), m_conf.getAPRSServer(), m_conf.getAPRSPort(), m_conf.getDebug());
+	CAPRSWriterThread* writer = new CAPRSWriterThread(m_conf.getCallsign(), m_conf.getAPRSPassword(), m_conf.getAPRSServer(), m_conf.getAPRSPort(), VERSION, m_conf.getDebug());
 	ret = writer->start();
 	if (!ret) {
 		delete writer;
