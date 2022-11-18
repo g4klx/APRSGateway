@@ -218,7 +218,7 @@ bool CAPRSWriterThread::connect()
 	LogMessage("Received login banner : %s", CUtils::rtrim(serverResponse).c_str());
 
 	char connectString[200U];
-	::sprintf(connectString, "user %s pass %s vers APRSGateway %s filter default\n", m_username.c_str(), m_password.c_str(), m_version.c_str());
+	::sprintf(connectString, "user %s pass %s vers APRSGateway %s\n", m_username.c_str(), m_password.c_str(), m_version.c_str());
 
 	ret = m_socket.writeLine(std::string(connectString));
 	if (!ret) {
