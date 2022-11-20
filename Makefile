@@ -14,9 +14,18 @@ APRSGateway:	$(OBJECTS)
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -c -o $@ $<
 
+APRSGateway.o: GitVersion.h FORCE
+
+.PHONY: GitVersion.h
+
+FORCE:
+
+
 install:
 		install -m 755 APRSGateway /usr/local/bin/
 
 clean:
-		$(RM) APRSGateway *.o *.d *.bak *~
- 
+		$(RM) APRSGateway *.o *.d *.bak *~ GitVersion.h
+
+GitVersion.h:
+		echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@ 
