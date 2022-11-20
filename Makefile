@@ -8,7 +8,7 @@ OBJECTS = APRSGateway.o APRSWriterThread.o Conf.o Log.o StopWatch.o TCPSocket.o 
 
 all:		APRSGateway
 
-APRSGateway:	$(OBJECTS)
+APRSGateway:	GitVersion.h $(OBJECTS)
 		$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o APRSGateway
 
 %.o: %.cpp
