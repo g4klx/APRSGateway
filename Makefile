@@ -8,15 +8,29 @@ OBJECTS = APRSGateway.o APRSWriterThread.o Conf.o Log.o StopWatch.o TCPSocket.o 
 
 all:		APRSGateway
 
-APRSGateway:	$(OBJECTS)
+APRSGateway:	GitVersion.h $(OBJECTS)
 		$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o APRSGateway
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -c -o $@ $<
 
+APRSGateway.o: GitVersion.h FORCE
+
+.PHONY: GitVersion.h
+
+FORCE:
+
+
 install:
 		install -m 755 APRSGateway /usr/local/bin/
 
 clean:
-		$(RM) APRSGateway *.o *.d *.bak *~
- 
+		$(RM) APRSGateway *.o *.d *.bak *~ GitVersion.h
+
+# Export the current git version if the index file exists, else 000...
+GitVersion.h:
+ifneq ("$(wildcard .git/index)","")
+	echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > $@
+else
+	echo "const char *gitversion = \"0000000000000000000000000000000000000000\";" > $@
+endif

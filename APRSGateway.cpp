@@ -25,6 +25,7 @@
 #include "Timer.h"
 #include "Utils.h"
 #include "Log.h"
+#include "GitVersion.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
@@ -59,7 +60,7 @@ int main(int argc, char** argv)
 		for (int currentArg = 1; currentArg < argc; ++currentArg) {
 			std::string arg = argv[currentArg];
 			if ((arg == "-v") || (arg == "--version")) {
-				::fprintf(stdout, "APRSGateway version %s\n", VERSION);
+				::fprintf(stdout, "APRSGateway version %s git #%.7s\n", VERSION, gitversion);
 				return 0;
 			} else if (arg.substr(0, 1) == "-") {
 				::fprintf(stderr, "Usage: APRSGateway [-v|--version] [filename]\n");
@@ -184,7 +185,8 @@ void CAPRSGateway::run()
 	CStopWatch stopWatch;
 	stopWatch.start();
 
-	LogMessage("Starting APRSGateway-%s", VERSION);
+	LogMessage("APRSGateway-%s is starting", VERSION);
+ 	LogMessage("Built %s %s (GitID #%.7s)", __TIME__, __DATE__, gitversion);
 
 	for (;;) {
 		unsigned char buffer[FRAME_BUFFER_SIZE];
