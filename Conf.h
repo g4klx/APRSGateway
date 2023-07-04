@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015,2016,2017,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2017,2018,2020,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -41,14 +41,12 @@ public:
 
   // The Log section
   unsigned int getLogDisplayLevel() const;
-  unsigned int getLogFileLevel() const;
-  std::string  getLogFilePath() const;
-  std::string  getLogFileRoot() const;
-  bool         getLogFileRotate() const;
+  unsigned int getLogMQTTLevel() const;
 
-  // The Network section
-  std::string  getNetworkAddress() const;
-  unsigned short getNetworkPort() const;
+  // The MQTT section
+  std::string  getMQTTAddress() const;
+  unsigned short getMQTTPort() const;
+  unsigned int getMQTTKeepalive() const;
   
 private:
   std::string  m_file;
@@ -57,17 +55,15 @@ private:
   bool         m_daemon;
 
   unsigned int m_logDisplayLevel;
-  unsigned int m_logFileLevel;
-  std::string  m_logFilePath;
-  std::string  m_logFileRoot;
-  bool         m_logFileRotate;
+  unsigned int m_logMQTTLevel;
 
   std::string  m_aprsServer;
   unsigned short m_aprsPort;
   std::string  m_aprsPassword;
 
-  std::string  m_networkAddress;
-  unsigned short m_networkPort;
+  std::string  m_mqttAddress;
+  unsigned short m_mqttPort;
+  unsigned int m_mqttKeepalive;
 };
 
 #endif

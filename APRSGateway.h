@@ -19,6 +19,7 @@
 #if !defined(APRSGateway_H)
 #define	APRSGateway_H
 
+#include "APRSWriterThread.h"
 #include "Timer.h"
 #include "Conf.h"
 
@@ -47,7 +48,12 @@ public:
 	void run();
 
 private:
-	CConf m_conf;
+	CConf              m_conf;
+	CAPRSWriterThread* m_writer;
+
+	void writeAPRS(const std::string& message);
+
+	static void onAPRS(const std::string& message);
 };
 
 #endif

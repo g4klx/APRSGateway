@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014,2016,2020,2022 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2016,2020,2022,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -159,12 +159,12 @@ void CAPRSWriterThread::setReadAPRSCallback(ReadAPRSFrameCallback cb)
 	m_aprsReadCallback = cb;
 }
 
-bool CAPRSWriterThread::write(const unsigned char* data, unsigned int length)
+bool CAPRSWriterThread::write(const std::string& message)
 {
-	assert(data != NULL);
-
 	if (!m_connected)
 		return false;
+
+	unsigned int length = message.size();
 
 	unsigned int free = m_queue.freeSpace();
 	if (free < (length + sizeof(unsigned int)))
@@ -174,7 +174,7 @@ bool CAPRSWriterThread::write(const unsigned char* data, unsigned int length)
 	if (!ret)
 		return false;
 
-	return m_queue.addData(data, length);
+	return m_queue.addData((unsigned char*)message.c_str(), length);
 }
 
 bool CAPRSWriterThread::isConnected() const

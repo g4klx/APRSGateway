@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2013,2016,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2013,2016,2018,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
  */
 
 #include "TCPSocket.h"
-#include "UDPSocket.h"
 #include "Log.h"
 
 #include <cstdio>
@@ -53,6 +52,40 @@ CTCPSocket::~CTCPSocket()
 #endif
 }
 
+int CTCPSocket::lookup(const std::string& hostname, unsigned short port, sockaddr_storage& addr, unsigned int& address_length)
+{
+	struct addrinfo hints;
+	::memset(&hints, 0, sizeof(hints));
+
+	return lookup(hostname, port, addr, address_length, hints);
+}
+
+int CTCPSocket::lookup(const std::string& hostname, unsigned short port, sockaddr_storage& addr, unsigned int& address_length, struct addrinfo& hints)
+{
+	std::string portstr = std::to_string(port);
+	struct addrinfo *res;
+
+	/* port is always digits, no needs to lookup service */
+	hints.ai_flags |= AI_NUMERICSERV;
+
+	int err = getaddrinfo(hostname.empty() ? NULL : hostname.c_str(), portstr.c_str(), &hints, &res);
+	if (err != 0) {
+		sockaddr_in* paddr = (sockaddr_in*)&addr;
+		::memset(paddr, 0x00U, address_length = sizeof(sockaddr_in));
+		paddr->sin_family = AF_INET;
+		paddr->sin_port = htons(port);
+		paddr->sin_addr.s_addr = htonl(INADDR_NONE);
+		LogError("Cannot find address for host %s", hostname.c_str());
+		return err;
+	}
+
+	::memcpy(&addr, res->ai_addr, address_length = res->ai_addrlen);
+
+	freeaddrinfo(res);
+
+	return 0;
+}
+
 bool CTCPSocket::open()
 {
 	if (m_fd != -1)
@@ -64,7 +97,7 @@ bool CTCPSocket::open()
 	/* to determine protocol family, call lookup() first.*/
 	sockaddr_storage addr;
 	unsigned int addrlen;
-	if (CUDPSocket::lookup(m_address, m_port, addr, addrlen) != 0)
+	if (lookup(m_address, m_port, addr, addrlen) != 0)
 		return false;
 
 	m_fd = ::socket(addr.ss_family, SOCK_STREAM, 0);

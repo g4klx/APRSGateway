@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015,2016,2017,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2017,2018,2020,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ enum SECTION {
   SECTION_GENERAL,
   SECTION_LOG,
   SECTION_APRS_IS,
-  SECTION_NETWORK
+  SECTION_MQTT
 };
 
 CConf::CConf(const std::string& file) :
@@ -40,15 +40,13 @@ m_callsign(),
 m_debug(false),
 m_daemon(false),
 m_logDisplayLevel(0U),
-m_logFileLevel(0U),
-m_logFilePath(),
-m_logFileRoot(),
-m_logFileRotate(true),
+m_logMQTTLevel(0U),
 m_aprsServer(),
 m_aprsPort(0U),
 m_aprsPassword(),
-m_networkAddress("127.0.0.1"),
-m_networkPort(0U)
+m_mqttAddress("127.0.0.1"),
+m_mqttPort(1883U),
+m_mqttKeepalive(60U)
 {
 }
 
@@ -78,8 +76,8 @@ bool CConf::read()
 				section = SECTION_LOG;
 			else if (::strncmp(buffer, "[APRS-IS]", 9U) == 0)
 				section = SECTION_APRS_IS;
-			else if (::strncmp(buffer, "[Network]", 9U) == 0)
-				section = SECTION_NETWORK;
+			else if (::strncmp(buffer, "[MQTT]", 6U) == 0)
+				section = SECTION_MQTT;
 			else
 				section = SECTION_NONE;
 
@@ -122,16 +120,10 @@ bool CConf::read()
 			else if (::strcmp(key, "Daemon") == 0)
 				m_daemon = ::atoi(value) == 1;
 		} else if (section == SECTION_LOG) {
-			if (::strcmp(key, "FilePath") == 0)
-				m_logFilePath = value;
-			else if (::strcmp(key, "FileRoot") == 0)
-				m_logFileRoot = value;
-			else if (::strcmp(key, "FileLevel") == 0)
-				m_logFileLevel = (unsigned int)::atoi(value);
+			if (::strcmp(key, "MQTTLevel") == 0)
+				m_logMQTTLevel = (unsigned int)::atoi(value);
 			else if (::strcmp(key, "DisplayLevel") == 0)
 				m_logDisplayLevel = (unsigned int)::atoi(value);
-			else if (::strcmp(key, "FileRotate") == 0)
-				m_logFileRotate = ::atoi(value) == 1;
 		} else if (section == SECTION_APRS_IS) {
 			if (::strcmp(key, "Server") == 0)
 				m_aprsServer = value;
@@ -139,11 +131,13 @@ bool CConf::read()
 				m_aprsPort = (unsigned short)::atoi(value);
 			else if (::strcmp(key, "Password") == 0)
 				m_aprsPassword = value;
-		} else if (section == SECTION_NETWORK) {
+		} else if (section == SECTION_MQTT) {
 			if (::strcmp(key, "Address") == 0)
-				m_networkAddress = value;
+				m_mqttAddress = value;
 			else if (::strcmp(key, "Port") == 0)
-				m_networkPort = (unsigned short)::atoi(value);
+				m_mqttPort = (unsigned short)::atoi(value);
+			else if (::strcmp(key, "Keepalive") == 0)
+				m_mqttKeepalive = (unsigned int)::atoi(value);
 		}
 	}
 
@@ -187,32 +181,23 @@ unsigned int CConf::getLogDisplayLevel() const
 	return m_logDisplayLevel;
 }
 
-unsigned int CConf::getLogFileLevel() const
+unsigned int CConf::getLogMQTTLevel() const
 {
-	return m_logFileLevel;
+	return m_logMQTTLevel;
 }
 
-std::string CConf::getLogFilePath() const
+std::string CConf::getMQTTAddress() const
 {
-	return m_logFilePath;
+	return m_mqttAddress;
 }
 
-std::string CConf::getLogFileRoot() const
+unsigned short CConf::getMQTTPort() const
 {
-	return m_logFileRoot;
+	return m_mqttPort;
 }
 
-bool CConf::getLogFileRotate() const
+unsigned int CConf::getMQTTKeepalive() const
 {
-	return m_logFileRotate;
+	return m_mqttKeepalive;
 }
 
-std::string CConf::getNetworkAddress() const
-{
-	return m_networkAddress;
-}
-
-unsigned short CConf::getNetworkPort() const
-{
-	return m_networkPort;
-}

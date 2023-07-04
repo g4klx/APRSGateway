@@ -1,10 +1,10 @@
 CC      = gcc
 CXX     = g++
-CFLAGS  = -g -O3 -Wall -std=c++0x -pthread -DHAVE_LOG_H
-LIBS    = -lpthread
+CFLAGS  = -g -O3 -Wall -std=c++0x -pthread
+LIBS    = -lpthread -lmosquitto
 LDFLAGS = -g
 
-OBJECTS = APRSGateway.o APRSWriterThread.o Conf.o Log.o StopWatch.o TCPSocket.o Thread.o Timer.o UDPSocket.o Utils.o
+OBJECTS = APRSGateway.o APRSWriterThread.o Conf.o Log.o MQTTConnection.o StopWatch.o TCPSocket.o Thread.o Timer.o Utils.o
 
 all:		APRSGateway
 

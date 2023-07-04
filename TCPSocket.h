@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010,2011,2012,2013,2016 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010,2011,2012,2013,2016,2023 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ public:
 	bool open();
 
 	int  read(unsigned char* buffer, unsigned int length, unsigned int secs, unsigned int msecs = 0U);
-	int readLine(std::string& line, unsigned int secs);
+	int  readLine(std::string& line, unsigned int secs);
 	bool write(const unsigned char* buffer, unsigned int length);
 	bool writeLine(const std::string& line);
 
@@ -53,6 +53,9 @@ private:
 	std::string    m_address;
 	unsigned short m_port;
 	int            m_fd;
+
+	int lookup(const std::string& hostName, unsigned short port, sockaddr_storage& address, unsigned int& address_length);
+	int lookup(const std::string& hostName, unsigned short port, sockaddr_storage& address, unsigned int& address_length, struct addrinfo& hints);
 };
 
 #endif

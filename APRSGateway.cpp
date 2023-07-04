@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2016,2017,2018,2020,2022 by Jonathan Naylor G4KLX
+*   Copyright (C) 2016,2017,2018,2020,2022,2023 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -17,9 +17,9 @@
 */
 
 #include "APRSGateway.h"
-#include "APRSWriterThread.h"
+#include "MQTTConnection.h"
 #include "StopWatch.h"
-#include "UDPSocket.h"
+#include "TCPSocket.h"
 #include "Version.h"
 #include "Thread.h"
 #include "Timer.h"
@@ -53,6 +53,11 @@ const char* DEFAULT_INI_FILE = "/etc/APRSGateway.ini";
 #include <ctime>
 #include <cstring>
 
+// In Log.cpp
+extern CMQTTConnection* m_mqtt;
+
+static CAPRSGateway* gateway = NULL;
+
 int main(int argc, char** argv)
 {
 	const char* iniFile = DEFAULT_INI_FILE;
@@ -71,7 +76,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	CAPRSGateway* gateway = new CAPRSGateway(std::string(iniFile));
+	gateway = new CAPRSGateway(std::string(iniFile));
 	gateway->run();
 	delete gateway;
 
@@ -79,14 +84,13 @@ int main(int argc, char** argv)
 }
 
 CAPRSGateway::CAPRSGateway(const std::string& file) :
-m_conf(file)
+m_conf(file),
+m_writer(NULL)
 {
-	CUDPSocket::startup();
 }
 
 CAPRSGateway::~CAPRSGateway()
 {
-	CUDPSocket::shutdown();
 }
 
 void CAPRSGateway::run()
@@ -152,15 +156,7 @@ void CAPRSGateway::run()
 	}
 #endif
 
-#if !defined(_WIN32) && !defined(_WIN64)
-        ret = ::LogInitialise(m_daemon, m_conf.getLogFilePath(), m_conf.getLogFileRoot(), m_conf.getLogFileLevel(), m_conf.getLogDisplayLevel(), m_conf.getLogFileRotate());
-#else
-        ret = ::LogInitialise(false, m_conf.getLogFilePath(), m_conf.getLogFileRoot(), m_conf.getLogFileLevel(), m_conf.getLogDisplayLevel(), m_conf.getLogFileRotate());
-#endif
-	if (!ret) {
-		::fprintf(stderr, "APRSGateway: unable to open the log file\n");
-		return;
-	}
+        ::LogInitialise(m_conf.getLogDisplayLevel(), m_conf.getLogMQTTLevel());
 
 #if !defined(_WIN32) && !defined(_WIN64)
 	if (m_daemon) {
@@ -170,17 +166,24 @@ void CAPRSGateway::run()
 	}
 #endif
 
-	CAPRSWriterThread* writer = new CAPRSWriterThread(m_conf.getCallsign(), m_conf.getAPRSPassword(), m_conf.getAPRSServer(), m_conf.getAPRSPort(), VERSION, m_conf.getDebug());
-	ret = writer->start();
+	m_writer = new CAPRSWriterThread(m_conf.getCallsign(), m_conf.getAPRSPassword(), m_conf.getAPRSServer(), m_conf.getAPRSPort(), VERSION, m_conf.getDebug());
+	ret = m_writer->start();
 	if (!ret) {
-		delete writer;
+		delete m_writer;
 		return;
 	}
 
-	CUDPSocket aprsSocket(m_conf.getNetworkAddress(), m_conf.getNetworkPort());
-	ret = aprsSocket.open();
-	if (!ret)
+	std::vector<std::pair<std::string, void (*)(const std::string&)>> subscriptions;
+	subscriptions.push_back(std::make_pair("aprs", CAPRSGateway::onAPRS));
+
+	m_mqtt = new CMQTTConnection(m_conf.getMQTTAddress(), m_conf.getMQTTPort(), "aprs-gateway", subscriptions, m_conf.getMQTTKeepalive());
+	ret = m_mqtt->open();
+	if (!ret) {
+		m_writer->stop();
+		delete m_writer;
+		delete m_mqtt;
 		return;
+	}
 
 	CStopWatch stopWatch;
 	stopWatch.start();
@@ -189,28 +192,35 @@ void CAPRSGateway::run()
  	LogMessage("Built %s %s (GitID #%.7s)", __TIME__, __DATE__, gitversion);
 
 	for (;;) {
-		unsigned char buffer[FRAME_BUFFER_SIZE];
-		sockaddr_storage addr;
-		unsigned int addrLen;
-
-		// From a gateway to aprs.fi
-		unsigned int len = aprsSocket.read(buffer, FRAME_BUFFER_SIZE, addr, addrLen);
-		if (len > 0U)
-			writer->write(buffer, len);
-
 		unsigned int ms = stopWatch.elapsed();
 		stopWatch.start();
 
-		writer->clock(ms);
+		m_writer->clock(ms);
 
 		if (ms < 20U)
 			CThread::sleep(20U);
 	}
 
-	aprsSocket.close();
-
-	writer->stop();
-	delete writer;
-
 	::LogFinalise();
+
+	m_writer->stop();
+	delete m_writer;
+
+	m_mqtt->close();
+	delete m_mqtt;
 }
+
+void CAPRSGateway::writeAPRS(const std::string& message)
+{
+	assert(m_writer != NULL);
+
+	m_writer->write(message);
+}
+
+void CAPRSGateway::onAPRS(const std::string& message)
+{
+	assert(gateway != NULL);
+
+	gateway->writeAPRS(message);	
+}
+
