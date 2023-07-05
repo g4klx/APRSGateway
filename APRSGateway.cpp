@@ -173,7 +173,7 @@ void CAPRSGateway::run()
 		return;
 	}
 
-	std::vector<std::pair<std::string, void (*)(const std::string&)>> subscriptions;
+	std::vector<std::pair<std::string, void (*)(const unsigned char*, unsigned int)>> subscriptions;
 	subscriptions.push_back(std::make_pair("aprs", CAPRSGateway::onAPRS));
 
 	m_mqtt = new CMQTTConnection(m_conf.getMQTTAddress(), m_conf.getMQTTPort(), "aprs-gateway", subscriptions, m_conf.getMQTTKeepalive());
@@ -217,10 +217,11 @@ void CAPRSGateway::writeAPRS(const std::string& message)
 	m_writer->write(message);
 }
 
-void CAPRSGateway::onAPRS(const std::string& message)
+void CAPRSGateway::onAPRS(const unsigned char* message, unsigned int length)
 {
 	assert(gateway != NULL);
+	assert(message != NULL);
 
-	gateway->writeAPRS(message);	
+	gateway->writeAPRS(std::string((char*)message, length));
 }
 
