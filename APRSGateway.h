@@ -45,7 +45,7 @@ public:
 	CAPRSGateway(const std::string& file);
 	~CAPRSGateway();
 
-	void run();
+	int run();
 
 private:
 	CConf              m_conf;
