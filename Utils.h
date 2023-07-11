@@ -22,6 +22,9 @@ public:
 	static void dump(int level, const std::string& title, const unsigned char* data, unsigned int length);
 
 	static std::string rtrim(const std::string& s);
+
+	static std::string createTimestamp();
+
 private:
 };
 

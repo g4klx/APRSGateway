@@ -17,6 +17,13 @@
 #include <cstdio>
 #include <cassert>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <Windows.h>
+#else
+#include <sys/time.h>
+#include <unistd.h>
+#endif
+
 const std::string LINEENDING = " \n\r";
 
 void CUtils::dump(const std::string& title, const unsigned char* data, unsigned int length)
@@ -76,5 +83,26 @@ std::string CUtils::rtrim(const std::string& s)
 {
 	size_t end = s.find_last_not_of(LINEENDING);
 	return (end == std::string::npos) ? "" : s.substr(0, end + 1);
+}
+
+std::string CUtils::createTimestamp()
+{
+	char buffer[100U];
+
+#if defined(_WIN32) || defined(_WIN64)
+	SYSTEMTIME st;
+	::GetSystemTime(&st);
+
+	::sprintf(buffer, "%04u-%02u-%02u %02u:%02u:%02u.%03u", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+#else
+	struct timeval now;
+	::gettimeofday(&now, NULL);
+
+	struct tm* tm = ::gmtime(&now.tv_sec);
+
+	::sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d.%03lld", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, now.tv_usec / 1000LL);
+#endif
+
+	return buffer;
 }
 

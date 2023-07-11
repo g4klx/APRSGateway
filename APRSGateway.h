@@ -51,6 +51,8 @@ private:
 	CConf              m_conf;
 	CAPRSWriterThread* m_writer;
 
+	void writeJSONStatus(const std::string& status);
+
 	void writeAPRS(const std::string& message);
 
 	static void onAPRS(const unsigned char* message, unsigned int length);

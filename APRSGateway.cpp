@@ -222,8 +222,10 @@ int CAPRSGateway::run()
 	CStopWatch stopWatch;
 	stopWatch.start();
 
-	LogMessage("APRSGateway-%s is starting", VERSION);
- 	LogMessage("Built %s %s (GitID #%.7s)", __TIME__, __DATE__, gitversion);
+	LogInfo("APRSGateway-%s is starting", VERSION);
+ 	LogInfo("Built %s %s (GitID #%.7s)", __TIME__, __DATE__, gitversion);
+
+	writeJSONStatus("APRSGateway is starting");
 
 	for (;;) {
 		unsigned int ms = stopWatch.elapsed();
@@ -235,10 +237,23 @@ int CAPRSGateway::run()
 			CThread::sleep(20U);
 	}
 
+	LogInfo("APRSGateway is stopping");
+	writeJSONStatus("APRSGateway is stoppng");
+
 	m_writer->stop();
 	delete m_writer;
 
 	return 0;
+}
+
+void CAPRSGateway::writeJSONStatus(const std::string& status)
+{
+	nlohmann::json json;
+
+	json["timestamp"] = CUtils::createTimestamp();
+	json["message"]   = status;
+
+	WriteJSON("status", json);
 }
 
 void CAPRSGateway::writeAPRS(const std::string& message)
