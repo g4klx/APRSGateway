@@ -96,6 +96,7 @@ int main(int argc, char** argv)
 	int ret = 0;
 
 	do {
+		m_killed = false;
 		m_signal = 0;
 
 		gateway = new CAPRSGateway(std::string(iniFile));
@@ -227,7 +228,7 @@ int CAPRSGateway::run()
 
 	writeJSONStatus("APRSGateway is starting");
 
-	for (;;) {
+	while (!m_killed) {
 		unsigned int ms = stopWatch.elapsed();
 		stopWatch.start();
 
