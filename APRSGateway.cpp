@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2016,2017,2018,2020,2022 by Jonathan Naylor G4KLX
+*   Copyright (C) 2016,2017,2018,2020,2022,2024 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -53,6 +53,18 @@ const char* DEFAULT_INI_FILE = "/etc/APRSGateway.ini";
 #include <ctime>
 #include <cstring>
 
+static bool m_killed = false;
+static int  m_signal = 0;
+
+#if !defined(_WIN32) && !defined(_WIN64)
+static void sigHandler(int signum)
+{
+	m_killed = true;
+	m_signal = signum;
+}
+#endif
+
+
 int main(int argc, char** argv)
 {
 	const char* iniFile = DEFAULT_INI_FILE;
@@ -71,11 +83,42 @@ int main(int argc, char** argv)
 		}
 	}
 
-	CAPRSGateway* gateway = new CAPRSGateway(std::string(iniFile));
-	gateway->run();
-	delete gateway;
+#if !defined(_WIN32) && !defined(_WIN64)
+	::signal(SIGINT,  sigHandler);
+	::signal(SIGTERM, sigHandler);
+	::signal(SIGHUP,  sigHandler);
+#endif
 
-	return 0;
+	int ret = 0;
+
+	do {
+		m_signal = 0;
+		m_killed = false;
+
+	 	CAPRSGateway* gateway = new CAPRSGateway(std::string(iniFile));
+		ret = gateway->run();
+
+		delete gateway;
+
+		switch (m_signal) {
+			case 2:
+				::LogInfo("APRSGateway-%s exited on receipt of SIGINT", VERSION);
+				break;
+			case 15:
+				::LogInfo("APRSGateway-%s exited on receipt of SIGTERM", VERSION);
+				break;
+			case 1:
+				::LogInfo("APRSGateway-%s is restarting on receipt of SIGHUP", VERSION);
+				break;
+			default:
+				::LogInfo("APRSGateway-%s exited on receipt of an unknown signal", VERSION);
+				break;
+		}
+	} while (m_signal == 1);
+
+	::LogFinalise();
+
+	return ret;
 }
 
 CAPRSGateway::CAPRSGateway(const std::string& file) :
@@ -89,12 +132,12 @@ CAPRSGateway::~CAPRSGateway()
 	CUDPSocket::shutdown();
 }
 
-void CAPRSGateway::run()
+int CAPRSGateway::run()
 {
 	bool ret = m_conf.read();
 	if (!ret) {
 		::fprintf(stderr, "APRSGateway: cannot read the .ini file\n");
-		return;
+		return 1;
 	}
 
 #if !defined(_WIN32) && !defined(_WIN64)
@@ -104,7 +147,7 @@ void CAPRSGateway::run()
 		pid_t pid = ::fork();
 		if (pid == -1) {
 			::fprintf(stderr, "Couldn't fork() , exiting\n");
-			return;
+			return 1;
 		} else if (pid != 0) {
 			exit(EXIT_SUCCESS);
 		}
@@ -112,13 +155,13 @@ void CAPRSGateway::run()
 		// Create new session and process group
 		if (::setsid() == -1) {
 			::fprintf(stderr, "Couldn't setsid(), exiting\n");
-			return;
+			return 1;
 		}
 
 		// Set the working directory to the root directory
 		if (::chdir("/") == -1) {
 			::fprintf(stderr, "Couldn't cd /, exiting\n");
-			return;
+			return 1;
 		}
 
 		// If we are currently root...
@@ -126,7 +169,7 @@ void CAPRSGateway::run()
 			struct passwd* user = ::getpwnam("mmdvm");
 			if (user == NULL) {
 				::fprintf(stderr, "Could not get the mmdvm user, exiting\n");
-				return;
+				return 1;
 			}
 
 			uid_t mmdvm_uid = user->pw_uid;
@@ -135,18 +178,18 @@ void CAPRSGateway::run()
 			// Set user and group ID's to mmdvm:mmdvm
 			if (setgid(mmdvm_gid) != 0) {
 				::fprintf(stderr, "Could not set mmdvm GID, exiting\n");
-				return;
+				return 1;
 			}
 
 			if (setuid(mmdvm_uid) != 0) {
 				::fprintf(stderr, "Could not set mmdvm UID, exiting\n");
-				return;
+				return 1;
 			}
 
 			// Double check it worked (AKA Paranoia) 
 			if (setuid(0) != -1) {
 				::fprintf(stderr, "It's possible to regain root - something is wrong!, exiting\n");
-				return;
+				return 1;
 			}
 		}
 	}
@@ -159,7 +202,7 @@ void CAPRSGateway::run()
 #endif
 	if (!ret) {
 		::fprintf(stderr, "APRSGateway: unable to open the log file\n");
-		return;
+		return 1;
 	}
 
 #if !defined(_WIN32) && !defined(_WIN64)
@@ -174,13 +217,13 @@ void CAPRSGateway::run()
 	ret = writer->start();
 	if (!ret) {
 		delete writer;
-		return;
+		return 1;
 	}
 
 	CUDPSocket aprsSocket(m_conf.getNetworkAddress(), m_conf.getNetworkPort());
 	ret = aprsSocket.open();
 	if (!ret)
-		return;
+		return 1;
 
 	CStopWatch stopWatch;
 	stopWatch.start();
@@ -188,7 +231,7 @@ void CAPRSGateway::run()
 	LogMessage("APRSGateway-%s is starting", VERSION);
  	LogMessage("Built %s %s (GitID #%.7s)", __TIME__, __DATE__, gitversion);
 
-	for (;;) {
+	while (!m_killed) {
 		unsigned char buffer[FRAME_BUFFER_SIZE];
 		sockaddr_storage addr;
 		unsigned int addrLen;
@@ -212,5 +255,5 @@ void CAPRSGateway::run()
 	writer->stop();
 	delete writer;
 
-	::LogFinalise();
+	return 0;
 }
