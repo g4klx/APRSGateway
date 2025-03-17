@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015,2016,2017,2018,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016,2017,2018,2020,2025 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,12 +26,12 @@
 
 const int BUFFER_SIZE = 500;
 
-enum SECTION {
-  SECTION_NONE,
-  SECTION_GENERAL,
-  SECTION_LOG,
-  SECTION_APRS_IS,
-  SECTION_NETWORK
+enum class SECTION {
+	NONE,
+	GENERAL,
+	LOG,
+	APRS_IS,
+	NETWORK
 };
 
 CConf::CConf(const std::string& file) :
@@ -59,39 +59,39 @@ CConf::~CConf()
 bool CConf::read()
 {
 	FILE* fp = ::fopen(m_file.c_str(), "rt");
-	if (fp == NULL) {
+	if (fp == nullptr) {
 		::fprintf(stderr, "Couldn't open the .ini file - %s\n", m_file.c_str());
 		return false;
 	}
 
-	SECTION section = SECTION_NONE;
+	SECTION section = SECTION::NONE;
 
 	char buffer[BUFFER_SIZE];
-	while (::fgets(buffer, BUFFER_SIZE, fp) != NULL) {
+	while (::fgets(buffer, BUFFER_SIZE, fp) != nullptr) {
 		if (buffer[0U] == '#')
 			continue;
 
 		if (buffer[0U] == '[') {
 			if (::strncmp(buffer, "[General]", 9U) == 0)
-				section = SECTION_GENERAL;
+				section = SECTION::GENERAL;
 			else if (::strncmp(buffer, "[Log]", 5U) == 0)
-				section = SECTION_LOG;
+				section = SECTION::LOG;
 			else if (::strncmp(buffer, "[APRS-IS]", 9U) == 0)
-				section = SECTION_APRS_IS;
+				section = SECTION::APRS_IS;
 			else if (::strncmp(buffer, "[Network]", 9U) == 0)
-				section = SECTION_NETWORK;
+				section = SECTION::NETWORK;
 			else
-				section = SECTION_NONE;
+				section = SECTION::NONE;
 
 			continue;
 		}
 
 		char* key = ::strtok(buffer, " \t=\r\n");
-		if (key == NULL)
+		if (key == nullptr)
 			continue;
 
-		char* value = ::strtok(NULL, "\r\n");
-		if (value == NULL)
+		char* value = ::strtok(nullptr, "\r\n");
+		if (value == nullptr)
 			continue;
 
 		// Remove quotes from the value
@@ -103,7 +103,7 @@ bool CConf::read()
 			char *p;
 
 			// if value is not quoted, remove after # (to make comment)
-			if ((p = strchr(value, '#')) != NULL)
+			if ((p = strchr(value, '#')) != nullptr)
 				*p = '\0';
 
 			// remove trailing tab/space
@@ -111,7 +111,7 @@ bool CConf::read()
 				*p = '\0';
 		}
 
-		if (section == SECTION_GENERAL) {
+		if (section == SECTION::GENERAL) {
 			if (::strcmp(key, "Callsign") == 0) {
 				// Convert the callsign to upper case
 				for (unsigned int i = 0U; value[i] != 0; i++)
@@ -121,7 +121,7 @@ bool CConf::read()
 				m_debug = ::atoi(value) == 1;
 			else if (::strcmp(key, "Daemon") == 0)
 				m_daemon = ::atoi(value) == 1;
-		} else if (section == SECTION_LOG) {
+		} else if (section == SECTION::LOG) {
 			if (::strcmp(key, "FilePath") == 0)
 				m_logFilePath = value;
 			else if (::strcmp(key, "FileRoot") == 0)
@@ -132,14 +132,14 @@ bool CConf::read()
 				m_logDisplayLevel = (unsigned int)::atoi(value);
 			else if (::strcmp(key, "FileRotate") == 0)
 				m_logFileRotate = ::atoi(value) == 1;
-		} else if (section == SECTION_APRS_IS) {
+		} else if (section == SECTION::APRS_IS) {
 			if (::strcmp(key, "Server") == 0)
 				m_aprsServer = value;
 			else if (::strcmp(key, "Port") == 0)
 				m_aprsPort = (unsigned short)::atoi(value);
 			else if (::strcmp(key, "Password") == 0)
 				m_aprsPassword = value;
-		} else if (section == SECTION_NETWORK) {
+		} else if (section == SECTION::NETWORK) {
 			if (::strcmp(key, "Address") == 0)
 				m_networkAddress = value;
 			else if (::strcmp(key, "Port") == 0)

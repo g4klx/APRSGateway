@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2010-2014,2016,2020,2022 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2010-2014,2016,2020,2022,2025 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ m_exit(false),
 m_connected(false),
 m_reconnectTimer(1000U),
 m_tries(1U),
-m_aprsReadCallback(NULL),
+m_aprsReadCallback(nullptr),
 m_version(version)
 {
 	assert(!callsign.empty());
@@ -128,7 +128,7 @@ void CAPRSWriterThread::entry()
 					}
 
 					if (length > 0 && line.at(0U) != '#'//check if we have something and if that something is an APRS frame
-						&& m_aprsReadCallback != NULL) { //do we have someone wanting an APRS Frame?
+						&& m_aprsReadCallback != nullptr) { //do we have someone wanting an APRS Frame?
 						// LogMessage("Received APRS Frame : %s", line.c_str());
 						m_aprsReadCallback(line);
 					}
@@ -161,7 +161,7 @@ void CAPRSWriterThread::setReadAPRSCallback(ReadAPRSFrameCallback cb)
 
 bool CAPRSWriterThread::write(const unsigned char* data, unsigned int length)
 {
-	assert(data != NULL);
+	assert(data != nullptr);
 
 	if (!m_connected)
 		return false;
