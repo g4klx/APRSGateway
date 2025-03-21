@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2016,2017,2018,2020,2022,2023,2024 by Jonathan Naylor G4KLX
+*   Copyright (C) 2016-2018,2020,2022-2025 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ const char* DEFAULT_INI_FILE = "/etc/APRSGateway.ini";
 // In Log.cpp
 extern CMQTTConnection* m_mqtt;
 
-static CAPRSGateway* gateway = NULL;
+static CAPRSGateway* gateway = nullptr;
 
 static bool m_killed = false;
 static int  m_signal = 0;
@@ -130,7 +130,7 @@ int main(int argc, char** argv)
 
 CAPRSGateway::CAPRSGateway(const std::string& file) :
 m_conf(file),
-m_writer(NULL)
+m_writer(nullptr)
 {
 }
 
@@ -173,7 +173,7 @@ int CAPRSGateway::run()
 		// If we are currently root...
 		if (getuid() == 0) {
 			struct passwd* user = ::getpwnam("mmdvm");
-			if (user == NULL) {
+			if (user == nullptr) {
 				::fprintf(stderr, "Could not get the mmdvm user, exiting\n");
 				return 1;
 			}
@@ -267,15 +267,15 @@ void CAPRSGateway::writeJSONStatus(const std::string& status)
 
 void CAPRSGateway::writeAPRS(const std::string& message)
 {
-	assert(m_writer != NULL);
+	assert(m_writer != nullptr);
 
 	m_writer->write(message);
 }
 
 void CAPRSGateway::onAPRS(const unsigned char* message, unsigned int length)
 {
-	assert(gateway != NULL);
-	assert(message != NULL);
+	assert(gateway != nullptr);
+	assert(message != nullptr);
 
 	gateway->writeAPRS(std::string((char*)message, length));
 }

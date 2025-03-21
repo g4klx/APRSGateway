@@ -14,9 +14,6 @@
     <ClCompile Include="TCPSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UDPSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Conf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -41,12 +38,12 @@
     <ClCompile Include="StopWatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MQTTConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TCPSocket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UDPSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Version.h">
@@ -77,6 +74,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StopWatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQTTConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
