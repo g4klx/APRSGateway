@@ -279,4 +279,3 @@ void CAPRSGateway::onAPRS(const unsigned char* message, unsigned int length)
 
 	gateway->writeAPRS(std::string((char*)message, length));
 }
-
