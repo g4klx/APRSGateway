@@ -21,7 +21,12 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <ctime>
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 CMQTTConnection::CMQTTConnection(const std::string& host, unsigned short port, const std::string& name, const bool authEnabled, const std::string& username, const std::string& password, const std::vector<std::pair<std::string, void (*)(const unsigned char*, unsigned int)>>& subs, unsigned int keepalive, MQTT_QOS qos) :
 m_host(host),
@@ -52,7 +57,11 @@ CMQTTConnection::~CMQTTConnection()
 bool CMQTTConnection::open()
 {
 	char name[50U];
-	::sprintf(name, "APRSGateway.%ld", ::time(nullptr));
+#if defined(_WIN32) || defined(_WIN64)
+	::sprintf(name, "APRSGateway.%u", (unsigned)::_getpid());
+#else
+	::sprintf(name, "APRSGateway.%u", (unsigned)::getpid());
+#endif
 
 	::fprintf(stdout, "APRSGateway (%s) connecting to MQTT as %s\n", m_name.c_str(), name);
 
