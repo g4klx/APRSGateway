@@ -1,18 +1,21 @@
 CC      = gcc
 CXX     = g++
-CFLAGS  = -g -O3 -Wall -std=c++0x -pthread
+CFLAGS  = -g -O3 -Wall -std=c++0x -MMD -MD -pthread
 LIBS    = -lpthread -lmosquitto
 LDFLAGS = -g
 
-OBJECTS = APRSGateway.o APRSWriterThread.o Conf.o Log.o MQTTConnection.o StopWatch.o TCPSocket.o Thread.o Timer.o Utils.o
+SRCS = $(wildcard *.cpp)
+OBJS = $(SRCS:.cpp=.o)
+DEPS = $(SRCS:.cpp=.d)
 
 all:		APRSGateway
 
-APRSGateway:	GitVersion.h $(OBJECTS)
-		$(CXX) $(OBJECTS) $(CFLAGS) $(LIBS) -o APRSGateway
+APRSGateway:	GitVersion.h $(OBJS)
+		$(CXX) $(OBJS) $(CFLAGS) $(LIBS) -o APRSGateway
 
 %.o: %.cpp
 		$(CXX) $(CFLAGS) -c -o $@ $<
+-include $(DEPS)
 
 APRSGateway.o: GitVersion.h FORCE
 
