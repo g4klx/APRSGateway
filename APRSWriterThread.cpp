@@ -53,7 +53,7 @@ m_version(version)
 	assert(port > 0U);
 
 	m_username.resize(CALLSIGN_LENGTH, ' ');
-	m_username.erase(std::find_if(m_username.rbegin(), m_username.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), m_username.end());
+	m_username.erase(std::find_if(m_username.rbegin(), m_username.rend(), [](unsigned char c) { return !std::isspace(c); }).base(), m_username.end());
 	std::transform(m_username.begin(), m_username.end(), m_username.begin(), ::toupper);
 }
 
