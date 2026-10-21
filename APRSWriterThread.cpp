@@ -97,17 +97,34 @@ void CAPRSWriterThread::entry()
 			if (m_connected) {
 				m_tries = 0U;
 
+				unsigned int q_length = 0U;
+				unsigned char p[FRAME_BUFFER_SIZE];
+				bool hasData = false;
+
+				m_queueMutex.lock();
 				if (!m_queue.isEmpty()){
-					unsigned int length = 0U;
-					m_queue.getData((unsigned char*)&length, sizeof(unsigned int));
+					m_queue.getData((unsigned char*)&q_length, sizeof(unsigned int));
+					
+					// BUFFER OVERFLOW & CORRUPTION PROTECTION
+					if (q_length == 0 || q_length > FRAME_BUFFER_SIZE) {
+						LogError("Queue corruption detected (invalid length %u), flushing queue to recover.", q_length);
+						while (!m_queue.isEmpty()) {
+							unsigned char temp;
+							m_queue.getData(&temp, 1U);
+						}
+						hasData = false;
+					} else {
+						m_queue.getData(p, q_length);
+						hasData = true;
+					}
+				}
+				m_queueMutex.unlock();
 
-					unsigned char p[FRAME_BUFFER_SIZE];
-					m_queue.getData(p, length);
-
+				if (hasData) {
 					if (m_debug)
-						CUtils::dump(1U, "APRS message", p, length);
+						CUtils::dump(1U, "APRS message", p, q_length);
 
-					bool ret = m_socket.write(p, length);
+					bool ret = m_socket.write(p, q_length);
 					if (!ret) {
 						m_connected = false;
 						m_socket.close();
@@ -142,11 +159,13 @@ void CAPRSWriterThread::entry()
 			m_socket.close();
 			writeJSONLink("unlinked", "");
 		}
-
+		
+		m_queueMutex.lock();
 		while (!m_queue.isEmpty()) {
 			unsigned char p;
 			m_queue.getData(&p, 1U);
 		}
+		m_queueMutex.unlock();
 	}
 	catch (std::exception& e) {
 		LogError("Exception raised in the APRS Writer thread - \"%s\"", e.what());
@@ -168,17 +187,32 @@ bool CAPRSWriterThread::write(const std::string& message)
 	if (!m_connected)
 		return false;
 
+	m_queueMutex.lock();
+
 	unsigned int length = message.size();
+	
+	// PREVENT BUFFER OVERFLOW FROM OVERSIZED MQTT MESSAGES
+	if (length == 0 || length > FRAME_BUFFER_SIZE) {
+		m_queueMutex.unlock();
+		return false;
+	}
 
 	unsigned int free = m_queue.freeSpace();
-	if (free < (length + sizeof(unsigned int)))
+	if (free < (length + sizeof(unsigned int))) {
+		m_queueMutex.unlock();
 		return false;
+	}
 
 	bool ret = m_queue.addData((unsigned char*)&length, sizeof(unsigned int));
-	if (!ret)
+	if (!ret) {
+		m_queueMutex.unlock();
 		return false;
+	}
 
-	return m_queue.addData((unsigned char*)message.c_str(), length);
+	ret = m_queue.addData((unsigned char*)message.c_str(), length);
+	m_queueMutex.unlock();
+	
+	return ret;
 }
 
 bool CAPRSWriterThread::isConnected() const
@@ -251,16 +285,6 @@ bool CAPRSWriterThread::connect()
 
 	LogMessage("Response from APRS server: %s", CUtils::rtrim(serverResponse).c_str());
 
-	// APRS-IS's login response is a line like
-	// "# logresp CALLSIGN verified, server NAME" (or "unverified" if the
-	// passcode doesn't match the callsign). The socket is genuinely open
-	// either way -- an unverified login still completes the TCP/login
-	// round-trip -- but an unverified feed may be silently dropped or
-	// filtered server-side, so this is exactly the "wrong password"
-	// equivalent for APRS-IS and deserves its own visible reason rather
-	// than being indistinguishable from a fully working connection, which
-	// is what happened before this patch (the response was read and
-	// logged, never inspected).
 	if (serverResponse.find("unverified") != std::string::npos) {
 		LogWarning("APRS-IS login was not verified -- check the configured passcode");
 		writeJSONLink("failed", "unverified");

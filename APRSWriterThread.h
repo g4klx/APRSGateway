@@ -23,6 +23,7 @@
 #include "RingBuffer.h"
 #include "Timer.h"
 #include "Thread.h"
+#include "Mutex.h"
 
 #include <string>
 
@@ -55,6 +56,7 @@ private:
 	bool                       m_debug;
 	CTCPSocket                 m_socket;
 	CRingBuffer<unsigned char> m_queue;
+	CMutex                     m_queueMutex;
 	bool                       m_exit;
 	bool                       m_connected;
 	CTimer                     m_reconnectTimer;
