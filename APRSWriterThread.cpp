@@ -136,7 +136,7 @@ void CAPRSWriterThread::entry()
 
 				if (m_connected) {
 					std::string line;
-					int length = m_socket.readLine(line, APRS_TIMEOUT);
+					int length = readLine(line);
 
 					if (length < 0) {
 						m_connected = false;
@@ -243,7 +243,7 @@ bool CAPRSWriterThread::connect()
 	//wait for lgin banner
 	int length;
 	std::string serverResponse;
-	length = m_socket.readLine(serverResponse, APRS_TIMEOUT);
+	length = readLine(serverResponse);
 	if (length == 0) {
 		LogError("No reply from the APRS server after %u seconds", APRS_TIMEOUT);
 		m_socket.close();
@@ -269,7 +269,7 @@ bool CAPRSWriterThread::connect()
 		return false;
 	}
 
-	length = m_socket.readLine(serverResponse, APRS_TIMEOUT);
+	length = readLine(serverResponse);
 	if (length == 0) {
 		LogError("No reply from the APRS server after %u seconds", APRS_TIMEOUT);
 		m_socket.close();
@@ -295,6 +295,24 @@ bool CAPRSWriterThread::connect()
 	LogMessage("Connected to the APRS server");
 
 	return true;
+}
+
+// Waits up to APRS_TIMEOUT seconds for a line, a second at a time, so a
+// stop() asked meanwhile ends the wait within a second (SIGTERM) instead
+// of after the whole timeout. A line arriving across seconds is kept.
+int CAPRSWriterThread::readLine(std::string& line)
+{
+	line.clear();
+
+	for (unsigned int secs = 0U; secs < APRS_TIMEOUT && !m_exit; secs++) {
+		std::string part;
+		int ret = m_socket.readLine(part, 1U);
+		line.append(part);
+		if (ret != 0)
+			return ret < 0 ? ret : int(line.length());
+	}
+
+	return 0;
 }
 
 void CAPRSWriterThread::startReconnectionTimer()

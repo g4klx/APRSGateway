@@ -25,6 +25,7 @@
 #include "Thread.h"
 #include "Mutex.h"
 
+#include <atomic>
 #include <string>
 
 const unsigned int FRAME_BUFFER_SIZE = 300U;
@@ -57,7 +58,7 @@ private:
 	CTCPSocket                 m_socket;
 	CRingBuffer<unsigned char> m_queue;
 	CMutex                     m_queueMutex;
-	bool                       m_exit;
+	std::atomic<bool>          m_exit;
 	bool                       m_connected;
 	CTimer                     m_reconnectTimer;
 	unsigned int               m_tries;
@@ -65,6 +66,7 @@ private:
 	std::string                m_version;
 
 	bool connect();
+	int  readLine(std::string& line);
 	void startReconnectionTimer();
 };
 
